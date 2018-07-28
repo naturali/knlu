@@ -19,7 +19,7 @@ def main():
     itera_x = dataset_x.make_one_shot_iterator()
     itera_y = dataset_y.make_one_shot_iterator()
     train_model = LanguageModel()
-    print(train_model.build_lm_model(itera_x, itera_y))
+    print("ppl:", train_model.build_lm_model(itera_x, itera_y))
 
 
 if __name__ == "__main__":
