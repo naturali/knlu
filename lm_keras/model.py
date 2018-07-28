@@ -1,4 +1,5 @@
 import keras
+import numpy as np
 from keras.models import Sequential
 from keras.layers import Dense,Dropout,Activation,Flatten,Input
 from keras.layers import Embedding,LSTM
