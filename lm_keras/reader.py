@@ -15,6 +15,7 @@ def _read_words(filename):
         else:
             return f.read().decode("utf-8").replace("\n", "<eos>").split()
 
+
 def _build_vocab(filename):
     data = _read_words(filename)
     counter = collections.Counter(data)
@@ -23,9 +24,11 @@ def _build_vocab(filename):
     word_to_id = dict(zip(words, range(len(words))))
     return word_to_id
 
+
 def _file_to_word_ids(filename, word_to_id):
     data = _read_words(filename)
     return [word_to_id[word] for word in data if word in word_to_id]
+
 
 def ptb_raw_data(data_path=None):
     train_path = os.path.join(data_path, "ptb.train.txt")
@@ -38,20 +41,21 @@ def ptb_raw_data(data_path=None):
     vocabulary = len(word_to_id)
     return train_data, valid_data, test_data, vocabulary
 
-def cut_num_step(train_data,num_step):
+
+def cut_num_step(train_data, num_step):
     x = []
     y = []
     a = []
     b = []
     for i in range(len(train_data)):
-        if i % num_step == 0 and i!=0:
+        if i % num_step == 0 and i != 0:
             x.append(a)
             y.append(b)
-            a =[]
-            b =[]
-        if i == len(train_data)-1:
+            a = []
+            b = []
+        if i == len(train_data) - 1:
             b.append(0)
         else:
             a.append(train_data[i])
-            b.append(to_categorical(train_data[i+1],num_classes=10000))
-    return np.asarray(x),np.asarray(y)
+            b.append(to_categorical(train_data[i + 1], num_classes=10000))
+    return np.asarray(x), np.asarray(y)
