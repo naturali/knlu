@@ -1,7 +1,7 @@
 import keras
 import numpy as np
 
-from keras.layers import Embedding
+from keras.layers import Embedding, LSTM
 from keras.optimizers import SGD
 from keras.models import Model
 from keras.layers import Input, Dense
@@ -18,7 +18,7 @@ class LanguageModel(object):
                                     m_config.EMBEDDING_DIM,
                                     input_length=m_config.MAX_SEQUENCE_LENGTH)
         x = embedding_layer(inputs)
-        x = keras.layers.LSTM(
+        x = LSTM(
             m_config.units,
             activation='tanh',
             recurrent_activation='hard_sigmoid',
@@ -27,7 +27,7 @@ class LanguageModel(object):
             recurrent_initializer='orthogonal',
             bias_initializer='zeros',
             return_sequences=True)(x)
-        x = keras.layers.LSTM(
+        x = LSTM(
             m_config.units,
             activation='tanh',
             recurrent_activation='hard_sigmoid',
