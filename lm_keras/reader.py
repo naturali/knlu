@@ -30,7 +30,6 @@ class TFDatasetReader(object):
         data = self._read_words(filename)
         return [word_to_id[word] for word in data if word in word_to_id]
 
-
     def preprocess_function(self, x):
         inputs = tf.concat([x], axis=0)
         input_length = tf.shape(inputs)[0] - 1

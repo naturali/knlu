@@ -14,6 +14,9 @@ class ModelConfig(object):
         self.steps_per_epoch = 40000
         self.voc_num = 10000
         self.train_file = "/simple-examples/data/ptb.train.txt"
-
+        self.valid_file = "/simple-examples/data/ptb.valid.txt"
+        self.test_file = "/simple-examples/data/ptb.test.txt"
+        self.valid_steps = 3370
+        self.test_steps = 3761
 
 m_config = ModelConfig()
