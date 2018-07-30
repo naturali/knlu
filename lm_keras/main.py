@@ -3,21 +3,14 @@ import tensorflow as tf
 import reader
 from config import m_config
 from model import LanguageModel
+from reader import RawStringDatasetReader
 
 
 def main():
-    dta_path = os.getcwd() + "/simple-examples/data/"
-    train_data, valid_data, test_data, _ = reader.ptb_raw_data(dta_path)
-    x_train, y_train = reader.cut_num_step(
-        train_data[0:10001], m_config.nb_time_steps)
-    features = x_train.astype('float32')
-    labels = y_train.astype('float32')
-    dataset_x = tf.data.Dataset.from_tensor_slices(features).repeat()
-    dataset_y = tf.data.Dataset.from_tensor_slices(labels).repeat()
-    dataset_x = dataset_x.batch(m_config.batch_size)
-    dataset_y = dataset_y.batch(m_config.batch_size)
-    itera_x = dataset_x.make_one_shot_iterator()
-    itera_y = dataset_y.make_one_shot_iterator()
+    train_file_dir = os.getcwd() + m_config.train_file
+    data_reader_type = RawStringDatasetReader(train_file_dir)
+    itera_x = data_reader_type.itera_x
+    itera_y = data_reader_type.itera_y
     train_model = LanguageModel()
     print("ppl:", train_model.build_lm_model(itera_x, itera_y))
 

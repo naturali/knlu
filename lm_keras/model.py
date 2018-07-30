@@ -1,10 +1,11 @@
 import keras
 import numpy as np
-
-from keras.layers import Embedding
+import tensorflow as tf
+from keras.layers import Embedding, LSTM
 from keras.optimizers import SGD
 from keras.models import Model
 from keras.layers import Input, Dense
+from keras import backend as k
 from config import m_config
 
 
@@ -13,12 +14,15 @@ class LanguageModel(object):
         self.config = m_config
 
     def build_lm_model(self, inputs_x, targets):
+        k.get_session().run(tf.tables_initializer())
+        k.get_session().run(inputs_x.initializer)
+        k.get_session().run(targets.initializer)
         inputs = Input(tensor=inputs_x.get_next())
         embedding_layer = Embedding(m_config.nb_words + 1,
                                     m_config.EMBEDDING_DIM,
-                                    input_length=m_config.MAX_SEQUENCE_LENGTH)
+                                    input_length=m_config.nb_time_steps)
         x = embedding_layer(inputs)
-        x = keras.layers.LSTM(
+        x = LSTM(
             m_config.units,
             activation='tanh',
             recurrent_activation='hard_sigmoid',
@@ -27,7 +31,7 @@ class LanguageModel(object):
             recurrent_initializer='orthogonal',
             bias_initializer='zeros',
             return_sequences=True)(x)
-        x = keras.layers.LSTM(
+        x = LSTM(
             m_config.units,
             activation='tanh',
             recurrent_activation='hard_sigmoid',
@@ -36,7 +40,7 @@ class LanguageModel(object):
             recurrent_initializer='orthogonal',
             bias_initializer='zeros',
             return_sequences=True)(x)
-        predictions = Dense(m_config.nb_words + 1, activation='softmax')(x)
+        predictions = Dense(m_config.voc_num, activation='softmax')(x)
         sgd = SGD(
             lr=m_config.sgd_lr,
             momentum=m_config.sgd_momentum,
@@ -49,6 +53,7 @@ class LanguageModel(object):
             metrics=['accuracy'],
             target_tensors=[
                 targets.get_next()])
+        print(model.summary())
         history = model.fit(
             epochs=m_config.nb_epoch,
             steps_per_epoch=m_config.steps_per_epoch)
