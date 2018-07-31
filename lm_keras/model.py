@@ -58,4 +58,4 @@ class LanguageModel(object):
             epochs=m_config.nb_epoch,
             steps_per_epoch=m_config.steps_per_epoch)
         ppl = np.exp(np.array(history.history["loss"]))
-        return ppl
+        return model,ppl
