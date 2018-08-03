@@ -6,21 +6,19 @@ import sys
 import keras
 import numpy as np
 import tensorflow as tf
-from keras.models import Sequential
-from keras.layers import Dense, Dropout, Activation, Flatten, Input, Bidirectional
+
+from keras.layers import Dense, Bidirectional
 from keras.layers import Embedding, LSTM
-from keras.utils import np_utils
-from keras.utils import to_categorical
+
 from keras.optimizers import SGD
 from keras import backend as K
-from keras.utils import multi_gpu_model
+
 
 
 class Kmodel(keras.Model):
     def __init__(self, config):
         super(Kmodel, self).__init__()
         self.config = config
-        #         self.input = Input(tensor=tf.cast(iter_data[0].get_next()[0], tf.float32))
         self.embedding = Embedding(self.config.vocab_size,
                                    self.config.embedding_size,
                                    input_length=self.config.num_steps - 1)
@@ -46,19 +44,18 @@ class Kmodel(keras.Model):
 class LanguageModel(object):
     def __init__(self, config):
         self.config = config
+        self.model = Kmodel(self.config)
 
     def build_lm_model(self):
-        model = Kmodel(self.config)
         sgd = SGD(
             lr=self.config.learning_rate,
             momentum=0.1,
             decay=0.1,
             nesterov=False)
-        model.compile(
+        self.model.compile(
             loss='categorical_crossentropy',
             optimizer=sgd,
             metrics=['accuracy'])
-        self.model = model
 
     def fit_lm_model(self, inputs):
         iter_data = []
@@ -86,3 +83,6 @@ class LanguageModel(object):
         y = tf.one_hot(iter_data[1].get_next()[3],self.config.vocab_size)
         loss = self.model.evaluate(x=x, y=y, steps=self.config.test_steps)[0]
         return np.exp(loss)
+
+    def save_model(self,filename):
+        self.model.save(filename)

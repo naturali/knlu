@@ -1,4 +1,4 @@
-import numpy as np
+
 import time
 import keras
 from k_lm.k_reader import RawStringDatasetReader
@@ -47,15 +47,15 @@ def run_model():
     return eval_model
 
 def save_model():
-    model = train_model()
-    config = m_config
-    save_dir = config.save_dir
-    str_time = time.asctime(time.localtime(time.time()))
-    save_name = "keras_model "+str_time
-    file_path = save_dir+save_name
-    model.save(file_path)
-    print("model has saved in "+file_path+".h5")
-
+    # model = train_model()
+    # config = m_config
+    # save_dir = config.save_dir
+    # str_time = time.asctime(time.localtime(time.time()))
+    # save_name = "keras_model "+str_time+".h5"
+    # file_path = save_dir+save_name
+    # print("model has saved in " + file_path)
+    # model.save_model(file_path)
+    pass # can't use because  Subclassed networks are not serializable in keras 2.2.0
 
 
 def main():

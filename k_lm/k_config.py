@@ -12,7 +12,7 @@ class ModelConfig(ConfigParser):
         # path params
         self.data_dir = '/mnt/cephfs/dataset/ptb'
         self.restore_path = ''
-        self.save_dir = './save'
+        self.save_dir = '/home/sunzewen/save/'
         self.load_model = ""
         self.use_float16 = False
         self.restore_model = False
