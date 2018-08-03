@@ -13,6 +13,7 @@ class ModelConfig(ConfigParser):
         self.data_dir = '/mnt/cephfs/dataset/ptb'
         self.restore_path = ''
         self.save_dir = './save'
+        self.load_model = ""
         self.use_float16 = False
         self.restore_model = False
         self.trans_embedding = True
@@ -58,8 +59,8 @@ class ModelConfig(ConfigParser):
         self.use_sampler_regularity = True
         self.regu_rate = 0.5
         self.num_sampled = 8192
-        self.label_smoothing = 0.
-        self.mode = ''
+        self.label_smoothing = 0.0
+        self.mode = 'save'
         self.show_step = 100
         self.valid_epoch = 1
         self.test_embedding_step = 1000

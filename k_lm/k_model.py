@@ -5,6 +5,7 @@ import math
 from keras.layers import Dense,Dropout,Input,Bidirectional
 from keras.layers import Embedding,LSTM
 from keras.optimizers import SGD
+from  keras.utils import multi_gpu_model
 from keras import backend as K
 
 
@@ -43,8 +44,9 @@ class LanguageModel(object):
             decay=self.config.sgd_decay,
             nesterov=False)
         model = Model(inputs=inputs, outputs=predictions)
+        if self.config.gpu_num > 1:
+            model = multi_gpu_model(model, gpus=self.config.gpu_num)
         # parallel_model = multi_gpu_model(model, gpus=2)
-        # parallel_model = model # can be changed to multi_gpu_models
         model.compile(
             loss='categorical_crossentropy',
             optimizer=sgd,
