@@ -60,7 +60,7 @@ class ModelConfig(ConfigParser):
         self.regu_rate = 0.5
         self.num_sampled = 8192
         self.label_smoothing = 0.0
-        self.mode = 'save'
+        self.mode = 'train'
         self.show_step = 100
         self.valid_epoch = 1
         self.test_embedding_step = 1000
