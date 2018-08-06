@@ -1,3 +1,6 @@
 /lm_keras/simple-examples/
 /lm_keras/__pycache__/
-/.idea/
+/.idea
+/k_lm/__pycache__/
+*.ipynb
+/lm_keras
