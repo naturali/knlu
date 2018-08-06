@@ -23,7 +23,8 @@ class TFDatasetReader(object):
         print("reader num_steps:", m_config.num_steps)
         for f in folders.split('|'):
             if len(f) > 0:
-                self.filenames += walkdir(os.path.join(dir, f), extension=extension)
+                self.filenames += walkdir(os.path.join(dir, f),
+                                          extension=extension)
         self.num_steps = m_config.num_steps
         self.shuffle_buffer_size = self.batch_size * m_config.shuffle_batch_num
         self.prefetch_buffer_size = self.batch_size * m_config.prefetch_batch_num
@@ -67,7 +68,7 @@ class TFDatasetReader(object):
             targets_freq = tf.gather(self.word_freq_list, targets)
             bw_targets_freq = tf.gather(self.word_freq_list, bw_targets)
             return inputs, bw_inputs, input_length, targets, bw_targets, \
-                   targets_freq, bw_targets_freq
+                targets_freq, bw_targets_freq
         else:
             return inputs, bw_inputs, input_length, targets, bw_targets
 
@@ -87,19 +88,20 @@ class TFDatasetReader(object):
         else:
             return dataset.padded_batch(
                 self.batch_size,
-                ([None], [None], [], [None], [None]),
-                (tf.ones([], tf.int64) * self.EOS_ID,
-                 tf.ones([], tf.int64) * self.SOS_ID,
-                 tf.zeros([], tf.int32),
-                 tf.ones([], tf.int64) * self.EOS_ID,
-                 tf.ones([], tf.int64) * self.SOS_ID)).filter(
-                lambda a, b, c, d, e: tf.equal(tf.shape(a)[0], self.batch_size))
+                ([None],[None],[],[None],[None]),
+                (tf.ones([],tf.int64) *self.EOS_ID,
+                    tf.ones([],tf.int64) *self.SOS_ID,
+                    tf.zeros([],tf.int32),
+                    tf.ones([],tf.int64) *self.EOS_ID,
+                    tf.ones([],tf.int64) *self.SOS_ID)).filter(
+                lambda a,b,c,d,e: tf.equal(tf.shape(a)[0],self.batch_size))
 
     def epoch_input(self):
         return NotImplemented
 
     def init_reader(self, sess):
         pass
+
 
 class RawStringDatasetReader(TFDatasetReader):
 
@@ -118,7 +120,8 @@ class RawStringDatasetReader(TFDatasetReader):
         super().__init__(dir, folders, is_train, m_config.raw_data_extension)
         kv_initializer = tf.contrib.lookup.TextFileInitializer(
             m_config.dict_path, tf.string, 0, tf.int64, 1, delimiter=" ")
-        self.lookup_table = tf.contrib.lookup.HashTable(kv_initializer, self.UNK_ID)
+        self.lookup_table = tf.contrib.lookup.HashTable(
+            kv_initializer, self.UNK_ID)
 
         filenames = self.filenames
         if self.is_train:
@@ -127,10 +130,17 @@ class RawStringDatasetReader(TFDatasetReader):
         if self.is_train:
             dataset.shuffle(self.shuffle_buffer_size)
 
-        dataset = dataset.map(lambda text: tokenize_ops.tokenize([text]), num_parallel_calls=self.gpu_num * 4).repeat()
-        dataset = dataset.map(lambda tkns: self.lookup_table.lookup(tkns), num_parallel_calls=self.gpu_num * 4)
-        dataset = dataset.filter(lambda x: tf.shape(x)[0] + 2 <= self.num_steps)
-        dataset = dataset.map(self.preprocess_function, num_parallel_calls=self.gpu_num * 4)
+        dataset = dataset.map(lambda text: tokenize_ops.tokenize(
+            [text]), num_parallel_calls=self.gpu_num * 4).repeat()
+        dataset = dataset.map(
+            lambda tkns: self.lookup_table.lookup(tkns),
+            num_parallel_calls=self.gpu_num * 4)
+        dataset = dataset.filter(
+            lambda x: tf.shape(x)[0] +
+            2 <= self.num_steps)
+        dataset = dataset.map(
+            self.preprocess_function,
+            num_parallel_calls=self.gpu_num * 4)
         dataset = self.padded_batch_function(dataset)
         dataset = dataset.prefetch(self.prefetch_buffer_size)
         self.iterator = dataset.make_initializable_iterator()

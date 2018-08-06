@@ -35,27 +35,28 @@ def train_model():
     return train_model
 
 def run_model():
-    model = keras.models.load_model(m_config.load_filepath)
-    data_reader_type = RawStringDatasetReader
-    test_data_input = data_reader_type(m_config.data_dir,
-                                  m_config.test_dir, is_train=True)
-    test_data_target = data_reader_type(m_config.data_dir,
-                                    m_config.test_dir, is_train=True)
-    eval_model = LanguageModel(m_config)
-    eval_ppl =  eval_model.evaluate_model([test_data_input,test_data_target],model)
-    print("eval's pll:", eval_ppl)
-    return eval_model
+    # model = keras.models.load_model(m_config.load_filepath)
+    # data_reader_type = RawStringDatasetReader
+    # test_data_input = data_reader_type(m_config.data_dir,
+    #                               m_config.test_dir, is_train=True)
+    # test_data_target = data_reader_type(m_config.data_dir,
+    #                                 m_config.test_dir, is_train=True)
+    # eval_model = LanguageModel(m_config)
+    # eval_ppl =  eval_model.evaluate_model([test_data_input,test_data_target],model)
+    # print("eval's pll:", eval_ppl)
+    # return eval_model
+    pass
 
 def save_model():
-    # model = train_model()
-    # config = m_config
-    # save_dir = config.save_dir
-    # str_time = time.asctime(time.localtime(time.time()))
-    # save_name = "keras_model "+str_time+".h5"
-    # file_path = save_dir+save_name
-    # print("model has saved in " + file_path)
-    # model.save_model(file_path)
-    pass # can't use because  Subclassed networks are not serializable in keras 2.2.0
+    model = train_model()
+    config = m_config
+    save_dir = config.save_dir
+    str_time = time.asctime(time.localtime(time.time()))
+    save_name = "keras_model "+str_time+".h5"
+    file_path = save_dir+save_name
+    print("model has saved in " + file_path)
+    model.save_model(file_path)
+    # pass # can't use because  Subclassed networks are not serializable in keras 2.2.0
 
 
 def main():

@@ -1,15 +1,8 @@
-from keras.models import Model
-from keras.layers import Input, Dense, InputLayer
-import os
-import collections
-import sys
 import keras
 import numpy as np
 import tensorflow as tf
-
 from keras.layers import Dense, Bidirectional
 from keras.layers import Embedding, LSTM
-
 from keras.optimizers import SGD
 from keras import backend as K
 
@@ -44,9 +37,13 @@ class Kmodel(keras.Model):
 class LanguageModel(object):
     def __init__(self, config):
         self.config = config
-        self.model = Kmodel(self.config)
+
 
     def build_lm_model(self):
+        self.model = Kmodel(self.config)
+        # if self.config.gpu_num > 1:
+        #     self.model = multi_gpu_model(self.model,gpus=self.config.gpu_num)
+        # can't use multi_gpu becasue of the same reason of save function
         sgd = SGD(
             lr=self.config.learning_rate,
             momentum=0.1,
@@ -66,7 +63,7 @@ class LanguageModel(object):
         history = self.model.fit(x=tf.cast(iter_data[0].get_next()[0], dtype=tf.float32),
                                  y=tf.one_hot(iter_data[1].get_next()[3], self.config.vocab_size),
                                  epochs=self.config.max_epoch,
-                                 steps_per_epoch=2)
+                                 steps_per_epoch=self.config.steps_per_epoch)
         ppl = np.exp(np.array(history.history["loss"]))
         return ppl
 

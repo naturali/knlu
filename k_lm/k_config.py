@@ -81,10 +81,10 @@ class ModelConfig(ConfigParser):
         self.test_words = "狗|男|花|跑|美"
         self.shuffle_batch_num = 8
         self.prefetch_batch_num = 32
-        self.steps_per_epoch = 10
+        self.steps_per_epoch = 1000
         self.sgd_momentum = 0.1
         self.sgd_decay = 0.1
-        self.test_steps = 10
+        self.test_steps = 1000
         self._parse_args(args)
         self.dict_path = os.path.join(self.data_dir, self.dict_file)
         self.word_freq_path = os.path.join(self.data_dir, self.word_freq_file)
@@ -95,4 +95,6 @@ class ModelConfig(ConfigParser):
             with open(self.dict_path) as f:
                 self.vocab_size = len(f.readlines())
         self.data_type = tf.float16 if self.use_float16 else tf.float32
+
+
 m_config = ModelConfig(sys.argv)
