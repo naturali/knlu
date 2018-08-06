@@ -1,72 +1,85 @@
-from keras.models import Model
+import keras
 import numpy as np
 import tensorflow as tf
-import math
-from keras.layers import Dense,Dropout,Input,Bidirectional
-from keras.layers import Embedding,LSTM
+from keras.layers import Dense, Bidirectional
+from keras.layers import Embedding, LSTM
 from keras.optimizers import SGD
-from  keras.utils import multi_gpu_model
 from keras import backend as K
 
 
+
+class Kmodel(keras.Model):
+    def __init__(self, config):
+        super(Kmodel, self).__init__()
+        self.config = config
+        self.embedding = Embedding(self.config.vocab_size,
+                                   self.config.embedding_size,
+                                   input_length=self.config.num_steps - 1)
+        self.bi_lstm_1 = Bidirectional(
+            LSTM(
+                self.config.hidden_size,
+                activation='tanh',
+                recurrent_activation='hard_sigmoid',
+                use_bias=True,
+                kernel_initializer='glorot_uniform',
+                recurrent_initializer='orthogonal',
+                bias_initializer='zeros',
+                return_sequences=True))
+        self.dense_1 = Dense(self.config.vocab_size, activation='softmax')
+
+    def call(self, inputs):
+        x = self.embedding(inputs)
+        x = self.bi_lstm_1(x)
+        x = self.dense_1(x)
+        return x
+
+
 class LanguageModel(object):
-    def __init__(self,config):
+    def __init__(self, config):
         self.config = config
 
-    def build_lm_model(self, train_data):
-        iter_data = []
-        for i in range(len(train_data)):
-            train_data[i].init_reader(K.get_session())
-            iter_data.append(train_data[i].epoch_input())
-            K.get_session().run(iter_data[i].initializer)
-        inputs = Input(tensor=tf.cast(iter_data[0].get_next()[0], tf.float32))
-        embedding_layer = Embedding(self.config.vocab_size,
-                                    self.config.embedding_size,
-                                    input_length=self.config.num_steps - 1)
-        X = embedding_layer(inputs)
-        for _ in range(self.config.num_layers):
-            X = Bidirectional(
-                LSTM(
-                    self.config.hidden_size,
-                    activation='tanh',
-                    recurrent_activation='hard_sigmoid',
-                    use_bias=True,
-                    kernel_initializer='glorot_uniform',
-                    recurrent_initializer='orthogonal',
-                    bias_initializer='zeros',
-                    return_sequences=True))(X)
-            X = Dropout(0.1)(X)
 
-        predictions = Dense(self.config.vocab_size, activation='softmax')(X)
+    def build_lm_model(self):
+        self.model = Kmodel(self.config)
+        # if self.config.gpu_num > 1:
+        #     self.model = multi_gpu_model(self.model,gpus=self.config.gpu_num)
+        # can't use multi_gpu becasue of the same reason of save function
         sgd = SGD(
             lr=self.config.learning_rate,
-            momentum=self.config.sgd_momentum,
-            decay=self.config.sgd_decay,
+            momentum=0.1,
+            decay=0.1,
             nesterov=False)
-        model = Model(inputs=inputs, outputs=predictions)
-        if self.config.gpu_num > 1:
-            model = multi_gpu_model(model, gpus=self.config.gpu_num)
-        # parallel_model = multi_gpu_model(model, gpus=2)
-        model.compile(
+        self.model.compile(
             loss='categorical_crossentropy',
             optimizer=sgd,
-            metrics=['accuracy'],
-            target_tensors=[
-                tf.one_hot(
-                    iter_data[1].get_next()[3],
-                    self.config.vocab_size)])
-        return model
+            metrics=['accuracy'])
 
-
-
-
-    def evaluate_model(self,train_data,k_model):
+    def fit_lm_model(self, inputs):
         iter_data = []
-        for i in range(len(train_data)):
-            train_data[i].init_reader(K.get_session())
-            iter_data.append(train_data[i].epoch_input())
+        for i in range(len(inputs)):
+            inputs[i].init_reader(K.get_session())
+            iter_data.append(inputs[i].epoch_input())
+            K.get_session().run(iter_data[i].initializer)
+        history = self.model.fit(x=tf.cast(iter_data[0].get_next()[0], dtype=tf.float32),
+                                 y=tf.one_hot(iter_data[1].get_next()[3], self.config.vocab_size),
+                                 epochs=self.config.max_epoch,
+                                 steps_per_epoch=self.config.steps_per_epoch)
+        ppl = np.exp(np.array(history.history["loss"]))
+        return ppl
+
+    def get_model(self):
+        return self.model
+
+    def evaluate_model(self,inputs):
+        iter_data = []
+        for i in range(len(inputs)):
+            inputs[i].init_reader(K.get_session())
+            iter_data.append(inputs[i].epoch_input())
             K.get_session().run(iter_data[i].initializer)
         x = tf.cast(iter_data[0].get_next()[0], tf.float32)
         y = tf.one_hot(iter_data[1].get_next()[3],self.config.vocab_size)
-        loss = k_model.evaluate(x=x, y=y, steps=self.config.test_steps)[0]
-        return math.exp(loss)
+        loss = self.model.evaluate(x=x, y=y, steps=self.config.test_steps)[0]
+        return np.exp(loss)
+
+    def save_model(self,filename):
+        self.model.save(filename)
