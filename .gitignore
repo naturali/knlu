@@ -2,3 +2,4 @@
 /lm_keras/__pycache__/
 /.idea
 /k_lm/__pycache__/
+*.ipynb
